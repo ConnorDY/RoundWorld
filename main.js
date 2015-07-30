@@ -4,7 +4,7 @@ var heightMap = new Array(
 	1.5, 2.0, 0.5, 0.5, 1.5, 1.5,
 	1.5, 0.5, 1.5, 0.5, 1.5, 0.5,
 	0.5, 0.5, 1.0, 1.0, 1.5, 2.0,
-	0.5, 1.5, 1.0, 1.5, 2.0, 2.0
+	2.0, 1.5, 1.0, 1.5, 2.0, 2.0
 );
 
 // Game settings
@@ -22,7 +22,7 @@ var worldScaleY = 150;
 
 var gravity = .00175;
 var jumpSpeed = .045;
-var moveSpeed = .036;
+var moveSpeed = .035;
 
 var cameraX, playerX, playerY, playerDir, playerDY, update;
 var keysHeld = new Array();
@@ -67,7 +67,7 @@ function updateGame()
 	cameraX = (sections / 2) - playerX;
 
 	// Player Input
-	playerDir = keyIsHeld(39) - keyIsHeld(37);
+	playerDir = 1;//keyIsHeld(39) - keyIsHeld(37);
 
 	// Gravity
 	if (placeFree(playerX, playerY - .05)) playerDY -= gravity;
@@ -84,6 +84,10 @@ function updateGame()
 			break;
 		}
 	}
+
+	// Update X
+	if (placeFree(playerX + (playerDir * moveSpeed), playerY)) playerX += playerDir * moveSpeed;
+	else resetGame();
 }
 
 function drawGame()
@@ -144,9 +148,6 @@ function drawGame()
 	// Draw player
 	drawRectangleFilledColour((canvasWidth / 2) - 2, originY - (playerY * worldScaleY) - 2, 4, 4, "#0000FF");
 	
-	// Move the player
-	if (placeFree(playerX + (playerDir * moveSpeed), playerY)) playerX += playerDir * moveSpeed;
-
 	// Player colliding with ground?
 	if (placeFree(playerX, playerY - .05)) var col = "#00FF00";
 	else var col = "#FF0000";
