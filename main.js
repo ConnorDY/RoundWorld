@@ -1,7 +1,7 @@
 var heightMap = new Array(
 	1.0, 1.0, 1.0, 1.0,
-	1.0, 1.0, 1.5, 2.0,
-	2.0, 0.5, 1.5, 1.5,
+	1.0, 1.5, 2.0, 2.0,
+	0.5, 0.5, 1.5, 1.5,
 	1.5
 );
 
@@ -17,23 +17,31 @@ var sections = 4;
 var worldScaleX = Math.PI / sections;
 var worldScaleY = 150;
 
-var stopCamera = false;
-
-var cameraX = 0;
-var playerY = 1;
+var stopCamera, cameraX, playerY, update;
 
 function initGame()
 {
+	// Initial settings
+	stopCamera = false;
+	cameraX = 0;
+	playerY = 1;
+
 	// Set FPS
-	setInterval(function() {
+	update = setInterval(function() {
 		updateGame();
 		drawGame();
 	}, 1000 / FPS);
 
-	$("body").keydown(function (e) {
-		if (event.which == 38) playerY += .5;
-		if (event.which == 40) playerY -= .5;
-	});
+	// Keypress Events
+	$("body").keydown(handleInput);
+}
+
+function resetGame()
+{
+	// 
+	$("body").off("keydown", handleInput);
+	clearInterval(update);
+	initGame();
 }
 
 function updateGame()
@@ -42,7 +50,7 @@ function updateGame()
 	var centerSegment = Math.floor(-cameraX + (sections / 2));
 	var centerY = heightMap[centerSegment];
 
-	if (playerY < centerY) playerY += .5;
+	if (playerY < centerY) resetGame();//playerY += .5;
 }
 
 function drawGame()
@@ -102,4 +110,10 @@ function drawGame()
 	
 	// Move the camera
 	if (!stopCamera) cameraX -= .01;
+}
+
+function handleInput(e)
+{
+	if (e.which == 38) playerY += .5;
+	if (e.which == 40) playerY -= .5;
 }
