@@ -27,7 +27,6 @@ var keysHeld = new Array();
 function initGame()
 {
 	// Initial settings
-	stopCamera = 0;
 	cameraX = 0;
 	playerDir = 0;
 	playerX = worldScaleX * (sections / 2);
