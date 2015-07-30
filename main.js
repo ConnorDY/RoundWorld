@@ -20,7 +20,11 @@ var sections = 6;
 var worldScaleX = Math.PI / sections;
 var worldScaleY = 150;
 
-var cameraX, playerX, playerY, playerDir, update;
+var gravity = .00175;
+var jumpSpeed = .045;
+var moveSpeed = .036;
+
+var cameraX, playerX, playerY, playerDir, playerDY, update;
 var keysHeld = new Array();
 
 // Game Functions
@@ -30,7 +34,8 @@ function initGame()
 	cameraX = 0;
 	playerDir = 0;
 	playerX = worldScaleX * (sections / 2);
-	playerY = 1;
+	playerY = 2;
+	playerDY = 0;
 
 	// Set FPS
 	update = setInterval(function() {
@@ -38,17 +43,21 @@ function initGame()
 		drawGame();
 	}, 1000 / FPS);
 
-	// Keypress Events
+	// Keypress events
 	$("body").keydown(handleInputD);
 	$("body").keyup(handleInputU);
 }
 
 function resetGame()
 {
-	// 
+	// Disable input functions
 	$("body").off("keydown", handleInputD);
 	$("body").off("keyup", handleInputU);
+
+	// Turn off update interval
 	clearInterval(update);
+
+	// Re-initialize game
 	initGame();
 }
 
@@ -59,6 +68,22 @@ function updateGame()
 
 	// Player Input
 	playerDir = keyIsHeld(39) - keyIsHeld(37);
+
+	// Gravity
+	if (placeFree(playerX, playerY - .05)) playerDY -= gravity;
+	else if (playerDY < 0) playerDY = 0;
+
+	// Update Y
+	for (var i = Math.abs(playerDY); i > 0; i--)
+	{
+		var j = copySign(i, playerDY);
+
+		if (placeFree(playerX, playerY + j))
+		{
+			playerY += j;
+			break;
+		}
+	}
 }
 
 function drawGame()
@@ -99,23 +124,18 @@ function drawGame()
 		}
 
 		// Draw ends of map
-		if (i == 0)
+		var angle = 0;
+
+		if (i == 0) angle = as;
+		else if (i == heightMap.length - 1) angle = ae;
+		
+		if (angle != 0)
 		{
-			var x3 = originX + (Math.cos(as) * rad);
-			var y3 = originY + (Math.sin(as) * rad);
+			var x3 = originX + (Math.cos(angle) * rad);
+			var y3 = originY + (Math.sin(angle) * rad);
 
-			var x4 = originX + (Math.cos(as) * canvasWidth * canvasHeight);
-			var y4 = originY + (Math.sin(as) * canvasWidth * canvasHeight);
-
-			drawLine(x3, y3, x4, y4);
-		}
-		else if (i == heightMap.length - 1)
-		{
-			var x3 = originX + (Math.cos(ae) * rad);
-			var y3 = originY + (Math.sin(ae) * rad);
-
-			var x4 = originX + (Math.cos(ae) * canvasWidth * canvasHeight);
-			var y4 = originY + (Math.sin(ae) * canvasWidth * canvasHeight);
+			var x4 = originX + (Math.cos(angle) * canvasWidth * canvasHeight);
+			var y4 = originY + (Math.sin(angle) * canvasWidth * canvasHeight);
 
 			drawLine(x3, y3, x4, y4);
 		}
@@ -124,11 +144,11 @@ function drawGame()
 	// Draw player
 	drawRectangleFilledColour((canvasWidth / 2) - 2, originY - (playerY * worldScaleY) - 2, 4, 4, "#0000FF");
 	
-	// Move the camera
-	if (placeFree(playerX + (playerDir * .05), playerY)) playerX += playerDir * .05;
+	// Move the player
+	if (placeFree(playerX + (playerDir * moveSpeed), playerY)) playerX += playerDir * moveSpeed;
 
 	// Player colliding with ground?
-	if (placeFree(playerX, playerY)) var col = "#00FF00";
+	if (placeFree(playerX, playerY - .05)) var col = "#00FF00";
 	else var col = "#FF0000";
 
 	drawRectangleFilledColour(2, 2, 4, 4, col);
@@ -138,8 +158,7 @@ function handleInputD(e)
 {
 	if (keysHeld.indexOf(e.which) < 0) keysHeld.push(e.which);
 
-	if (e.which == 38 && placeFree(playerX, playerY + .5)) playerY += .5;
-	if (e.which == 40 && placeFree(playerX, playerY - .5)) playerY -= .5;
+	if (e.which == 38 && playerDY == 0) playerDY = jumpSpeed;
 }
 
 function handleInputU(e)
@@ -156,6 +175,8 @@ function keyIsHeld(e)
 
 function placeFree(x, y)
 {
+	x -= .005;
+
 	if (x < 0 || x > heightMap.length) return false;
 	else if (y < heightMap[Math.floor(x)]) return false;
 	else return true;
